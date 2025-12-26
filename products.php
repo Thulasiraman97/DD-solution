@@ -16,7 +16,7 @@ if ($category_slug) {
 $cats = $pdo->query("SELECT * FROM categories")->fetchAll();
 
 // Fetch Products
-$sql = "SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id $whereSQL ORDER BY p.created_at DESC";
+$sql = "SELECT p.*, c.name as category_name, (SELECT id FROM product_images WHERE product_id = p.id LIMIT 1) as thumb_id FROM products p JOIN categories c ON p.category_id = c.id $whereSQL ORDER BY p.created_at DESC";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $products = $stmt->fetchAll();
@@ -51,9 +51,17 @@ $products = $stmt->fetchAll();
             
             <?php if (count($products) > 0): ?>
                 <div class="product-grid">
-                    <?php foreach ($products as $prod): 
-                        $imgs = json_decode($prod['images_json']);
-                        $thumb = !empty($imgs) ? "uploads/" . $imgs[0] : "assets/images/logo.png";
+                    <?php foreach ($products as $key => $prod): 
+                        $thumb = "assets/images/logo.png"; // Default
+                        if ($prod['thumb_id']) {
+                            $thumb = "view_image.php?id=" . $prod['thumb_id'];
+                        } elseif (!empty($prod['images_json']) && $prod['images_json'] != '[]') {
+                            // Fallback
+                            $imgs = json_decode($prod['images_json']);
+                            if (!empty($imgs)) {
+                                $thumb = "uploads/" . $imgs[0];
+                            }
+                        }
                     ?>
                     <div class="product-card" data-aos="fade-up" data-aos-delay="<?php echo $key * 100; ?>">
                         <div class="product-img">

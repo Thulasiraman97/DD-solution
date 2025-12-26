@@ -1,10 +1,10 @@
 <?php
 // config/db.php
 
-$host = 'localhost';
-$dbname = 'ddsolutions'; // Change this to your Hostinger DB name
-$username = 'root';      // Change this to your Hostinger DB username
-$password = '';          // Change this to your Hostinger DB password
+$host = getenv('DB_HOST') ?: 'localhost';
+$dbname = getenv('DB_NAME') ?: 'ddsolutions'; 
+$username = getenv('DB_USER') ?: 'root';
+$password = getenv('DB_PASS') ?: '';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);

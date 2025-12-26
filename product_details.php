@@ -14,21 +14,43 @@ if (!$product) {
 
 $pageTitle = $product['title'];
 include 'includes/header.php';
-$images = json_decode($product['images_json']);
+$stmt_img = $pdo->prepare("SELECT id FROM product_images WHERE product_id = ?");
+$stmt_img->execute([$id]);
+$product_images = $stmt_img->fetchAll(PDO::FETCH_COLUMN);
+
+// Fallback to old images if no DB images found
+if (empty($product_images) && !empty($product['images_json']) && $product['images_json'] != '[]') {
+    $legacy_images = json_decode($product['images_json']);
+} else {
+    $legacy_images = [];
+}
 ?>
 
 <div class="container section-padding">
     <div style="display: flex; gap: 50px; flex-wrap: wrap;">
         <!-- Image Gallery -->
         <div style="flex: 1; min-width: 300px;">
-            <?php $mainImg = !empty($images) ? "uploads/" . $images[0] : "assets/images/logo.png"; ?>
+            <?php 
+            $mainImg = "assets/images/logo.png";
+            if (!empty($product_images)) {
+                $mainImg = "view_image.php?id=" . $product_images[0];
+            } elseif (!empty($legacy_images)) {
+                $mainImg = "uploads/" . $legacy_images[0];
+            }
+            ?>
             <div style="border: 1px solid #eee; border-radius: 10px; overflow: hidden; margin-bottom: 20px;">
                 <img id="mainImage" src="<?php echo $mainImg; ?>" alt="<?php echo $product['title']; ?>" style="width: 100%; display: block;">
             </div>
             <div style="display: flex; gap: 10px; overflow-x: auto;">
-                <?php foreach ($images as $img): ?>
-                <img src="uploads/<?php echo $img; ?>" onclick="document.getElementById('mainImage').src=this.src" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px; cursor: pointer; border: 1px solid #ddd;">
-                <?php endforeach; ?>
+                <?php if (!empty($product_images)): ?>
+                    <?php foreach ($product_images as $img_id): ?>
+                    <img src="view_image.php?id=<?php echo $img_id; ?>" onclick="document.getElementById('mainImage').src=this.src" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px; cursor: pointer; border: 1px solid #ddd;">
+                    <?php endforeach; ?>
+                <?php elseif (!empty($legacy_images)): ?>
+                    <?php foreach ($legacy_images as $img): ?>
+                    <img src="uploads/<?php echo $img; ?>" onclick="document.getElementById('mainImage').src=this.src" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px; cursor: pointer; border: 1px solid #ddd;">
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
         

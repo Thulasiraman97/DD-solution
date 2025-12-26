@@ -1,0 +1,20 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Environment and Config
+.env
+.env.local
+/*.log
+
+# IDE and System
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Project Specific
+/uploads/*
+!/uploads/.gitkeep

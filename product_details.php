@@ -58,7 +58,12 @@ if (empty($product_images) && !empty($product['images_json']) && $product['image
         <div style="flex: 1; min-width: 300px;">
             <span class="product-cat"><?php echo $product['category_name']; ?></span>
             <h1 style="font-size: 2.5rem; margin: 10px 0;"><?php echo $product['title']; ?></h1>
-            <span style="font-size: 2rem; color: var(--accent); font-weight: 700;"><?php echo formatPrice($product['price']); ?></span>
+            <div style="margin-bottom: 20px;">
+                <?php if (!empty($product['actual_price']) && $product['actual_price'] > $product['price']): ?>
+                    <span style="text-decoration: line-through; color: #888; font-size: 1.4rem; margin-right: 10px;"><?php echo formatPrice($product['actual_price']); ?></span>
+                <?php endif; ?>
+                <span style="font-size: 2rem; color: var(--accent); font-weight: 700;"><?php echo formatPrice($product['price']); ?></span>
+            </div>
             
             <p style="margin: 20px 0; color: #555;"><?php echo nl2br(htmlspecialchars($product['short_desc'])); ?></p>
             
@@ -79,6 +84,21 @@ if (empty($product_images) && !empty($product['images_json']) && $product['image
                 <h3 style="border-bottom: 2px solid var(--accent); display: inline-block; margin-bottom: 15px;">Description</h3>
                 <div style="line-height: 1.8;">
                     <?php echo nl2br(htmlspecialchars($product['description'])); ?>
+                </div>
+
+                <?php 
+                $specs = !empty($product['specs_json']) ? json_decode($product['specs_json'], true) : [];
+                if (!empty($specs)): 
+                ?>
+                <div style="margin-top: 30px;">
+                    <h3 style="border-bottom: 2px solid var(--accent); display: inline-block; margin-bottom: 15px;">Specifications</h3>
+                    <ul style="list-style-type: disc; padding-left: 20px;">
+                        <?php foreach($specs as $spec): ?>
+                            <li style="margin-bottom: 8px; color: #444;"><?php echo htmlspecialchars($spec); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+                <?php endif; ?>
                 </div>
             </div>
         </div>

@@ -62,6 +62,7 @@ CREATE TABLE `products` (
   `description` text DEFAULT NULL,
   `short_desc` varchar(500) DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
+  `actual_price` decimal(10,2) DEFAULT NULL,
   `images_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`images_json`)),
   `specs_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`specs_json`)),
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -109,7 +110,7 @@ CREATE TABLE `order_items` (
 CREATE TABLE `product_images` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `product_id` int(11) NOT NULL,
-  `image_data` longblob NOT NULL,
+  `image_path` varchar(255) NOT NULL,
   `content_type` varchar(50) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),

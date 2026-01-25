@@ -71,7 +71,12 @@ $products = $stmt->fetchAll();
                     <span class="product-cat" style="color: #667eea; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;"><?php echo $prod['category_name']; ?></span>
                     <h3 style="margin: 10px 0; font-size: 1.2rem; color: #1a1a2e;"><?php echo $prod['title']; ?></h3>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <div class="price-wrap">
+                        <?php if (!empty($prod['actual_price']) && $prod['actual_price'] > $prod['price']): ?>
+                            <span class="actual-price" style="text-decoration: line-through; color: #999; font-size: 0.9rem; margin-right: 5px;"><?php echo formatPrice($prod['actual_price']); ?></span>
+                        <?php endif; ?>
                         <span class="product-price" style="font-size: 1.3rem; font-weight: 700; color: #2d3436;"><?php echo formatPrice($prod['price']); ?></span>
+                    </div>
                         <a href="product_details.php?id=<?php echo $prod['id']; ?>" class="btn-sm" style="padding: 8px 15px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 8px; text-decoration: none; font-size: 0.9rem; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Buy Now</a>
                     </div>
                 </div>

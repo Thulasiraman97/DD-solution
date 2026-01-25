@@ -1,14 +1,63 @@
 <?php
 // contact.php
-$pageTitle = 'Contact Us';
-include 'includes/header.php';
+require_once 'config/db.php';
+require_once 'includes/functions.php';
 
+$pageTitle = 'Contact Us';
 $msg = '';
+$msgType = '';
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Basic form handling - in real world, send mail
-    $msg = "Thank you! Your message has been sent. We will get back to you shortly.";
+    if (!isset($_POST['csrf_token']) || !verifyCsrfToken($_POST['csrf_token'])) {
+        die("Invalid CSRF Token. Please refresh the page and try again.");
+    }
+
+    $name = cleanInput($_POST['name']);
+    $email = cleanInput($_POST['email']);
+    $subject = cleanInput($_POST['subject']);
+    $message = cleanInput($_POST['message']);
+
+    try {
+        $stmt = $pdo->prepare("INSERT INTO contact_messages (name, email, subject, message) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$name, $email, $subject, $message]);
+        
+        // Send Email to Company
+        $to = 'info.ddsolutionscdl@gmail.com'; // Company Email
+        $mailSubject = "New Contact Message: " . $subject;
+        $mailBody = "
+        <html>
+        <head>
+          <title>New Contact Message</title>
+        </head>
+        <body>
+          <h2>New Message from Contact Form</h2>
+          <p><strong>Name:</strong> " . htmlspecialchars($name) . "</p>
+          <p><strong>Email:</strong> " . htmlspecialchars($email) . "</p>
+          <p><strong>Subject:</strong> " . htmlspecialchars($subject) . "</p>
+          <p><strong>Message:</strong><br>" . nl2br(htmlspecialchars($message)) . "</p>
+        </body>
+        </html>
+        ";
+
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+        $headers .= "From: DD Solutions <no-reply@ddsolutions.in>" . "\r\n";
+        $headers .= "Reply-To: " . $email . "\r\n";
+
+        @mail($to, $mailSubject, $mailBody, $headers);
+
+        $msg = "Thank you! Your message has been sent successfully.";
+        $msgType = "success";
+    } catch (PDOException $e) {
+        $msg = "Error sending message. Please try again.";
+        $msgType = "error";
+    }
 }
+
+include 'includes/header.php';
 ?>
+
+
 
 <div class="hero contact-hero static-bg" style="height: 100vh; background: url('assets/images/contact-cover.jpg') no-repeat center center/cover fixed; position: relative; display: flex; align-items: center; margin-bottom: 50px;">
     <div style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.4));"></div>
@@ -110,6 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <?php endif; ?>
                     
                     <form method="POST">
+                        <?php echo csrfInput(); ?>
                         <div style="margin-bottom: 25px; position: relative;">
                             <label style="display: block; color: #1a1a2e; font-weight: 600; margin-bottom: 8px; font-size: 0.95rem;">
                                 <i class="fas fa-user" style="margin-right: 8px; color: #667eea;"></i>Your Name

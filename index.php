@@ -4,7 +4,8 @@ $pageTitle = 'Home';
 include 'includes/header.php';
 
 // Fetch featured products (latest 4)
-$stmt = $pdo->query("SELECT * FROM products ORDER BY created_at DESC LIMIT 4");
+// Fetch featured products (latest 4)
+$stmt = $pdo->query("SELECT p.*, (SELECT id FROM product_images WHERE product_id = p.id LIMIT 1) as thumb_id FROM products p ORDER BY created_at DESC LIMIT 4");
 $featured_products = $stmt->fetchAll();
 ?>
 
@@ -337,19 +338,35 @@ $featured_products = $stmt->fetchAll();
     <div class="container">
         <h2 class="text-center" style="margin-bottom: 50px;">Featured Products</h2>
         <div class="product-grid">
-            <?php foreach ($featured_products as $prod): 
-                $imgs = json_decode($prod['images_json']);
-                $thumb = !empty($imgs) ? "uploads/" . $imgs[0] : "assets/images/logo.png";
+            <?php foreach ($featured_products as $key => $prod): 
+                $thumb = "assets/images/logo.png"; // Default
+                if ($prod['thumb_id']) {
+                    $thumb = "view_image.php?id=" . $prod['thumb_id'];
+                } elseif (!empty($prod['images_json']) && $prod['images_json'] != '[]') {
+                    // Fallback
+                    $imgs = json_decode($prod['images_json']);
+                    if (!empty($imgs)) {
+                        $thumb = "uploads/" . $imgs[0];
+                    }
+                }
             ?>
-            <div class="product-card" data-aos="fade-up">
+            <div class="product-card" data-aos="fade-up" data-aos-delay="<?php echo $key * 100; ?>">
                 <div class="product-img">
                     <img src="<?php echo $thumb; ?>" alt="<?php echo $prod['title']; ?>">
                 </div>
-                <div class="product-info">
-                    <span class="product-cat">Product</span>
-                    <h3 class="product-title"><?php echo $prod['title']; ?></h3>
-                    <span class="product-price"><?php echo formatPrice($prod['price']); ?></span>
-                    <a href="product_details.php?id=<?php echo $prod['id']; ?>" class="btn" style="width: 100%; text-align: center;">View Details</a>
+                <div class="product-info" style="padding: 20px;">
+                    <span class="product-cat" style="color: #667eea; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Latest</span>
+                    <h3 class="product-title" style="margin: 10px 0; font-size: 1.2rem; color: #1a1a2e;"><?php echo $prod['title']; ?></h3>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <div class="price-wrap">
+                            <?php if (!empty($prod['actual_price']) && $prod['actual_price'] > $prod['price']): ?>
+                                <span class="actual-price" style="text-decoration: line-through; color: #999; font-size: 0.9rem; margin-right: 5px;"><?php echo formatPrice($prod['actual_price']); ?></span>
+                            <?php endif; ?>
+                            <span class="product-price" style="font-size: 1.3rem; font-weight: 700; color: #2d3436;"><?php echo formatPrice($prod['price']); ?></span>
+                        </div>
+                        <a href="product_details.php?id=<?php echo $prod['id']; ?>" class="btn-sm" style="padding: 8px 15px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 8px; text-decoration: none; font-size: 0.9rem; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Buy Now</a>
+                    </div>
                 </div>
             </div>
             <?php endforeach; ?>
